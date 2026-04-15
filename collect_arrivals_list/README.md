@@ -28,3 +28,10 @@ sh ./multiple_days_collect.sh datesonly.txt
 will collect all of the arrays for all of the dates specified.  
 
 
+Now we want to extract the useful lines from the isf files obtained and we do this using the script
+**filter_one_file.sh** which in turn calls the https://github.com/stevenjgibbons/dipping_layer_corrections/tree/main/isf_file_filter and
+https://github.com/stevenjgibbons/dipping_layer_corrections/tree/main/isf_event_compute programs.  
+
+**filter_all_isf_files.sh** is just an example script that filters multiple files.  
+
+Similarly, **delete_empty_files.sh** will delete all empty files and **bg_run.sh** is to be edited for the job in hand to perform the task in the background.  
