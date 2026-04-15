@@ -1,0 +1,154 @@
+
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel=stylesheet type=text/css href="/css/searchstyle.css">
+
+</head>
+
+<body text="#000000" bgcolor="#FFFFFF">
+
+<center>
+<div class="header">
+  <h1>
+    International Seismological Centre<br>
+    ISC: On-Line Bulletin
+  </h1>
+</div>
+</center>
+
+<p>Any use of data from the ISC <b>should be cited</b>. The correct format for citations may be found on our <a href="http://www.isc.ac.uk/citations/">citation page</a>.</p>
+
+<table><tr><td><b>Arrival search summary:</b></td><tr><td>Database: ISC Bulletin</td></tr><tr><td>Station search type: Station code</td></tr><tr><td>Stations requested: SPITS</td></tr><tr><td>Event search type: Global search</td></tr><tr><td>Start date: 2016-04-15 00:00:00</td></tr><tr><td>End date: 2016-04-15 23:59:59</td></tr><tr><td>Arrivals restricted to those with arrival-times</td></tr><tr><td>Arrivals restricted to those with travel-time residuals</td></tr><tr><td>Arrivals restricted to time-defining phases</td></tr></table><p style="color:red">Agencies whose data contributed towards the results of this search are listed at the bottom of the page.</p>
+<pre>
+
+
+DATA_TYPE ARRIVAL:ASSOCIATED ISF2.1
+Net       Sta     Dist  EvAz Phase      Date        Time       TRes  Azim AzRes  Slow  SRes Def   SNR       Amp   Per Qual Magnitude   OrigID    Author       ArrID    Agy   Deploy   Ln Auth  Rep   PCh ACh L   Lat       Lon     Elev    Depth
+IR        SPITS  92.22 348.9 P        2016/04/15 05:03:09.352  -0.4  91.4         6.7       T__  10.4       4.2  0.60  __ mb     5.0   610734457             735209953 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS 125.93 355.9 PKPdf    2016/04/15 10:59:51.396  -0.2                         T__             7.7  0.81  __              610734483             735210599 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  79.31 350.7 P        2016/04/15 11:11:21.711  -0.8  73.6         5.1       T__   2.0       7.4  0.92  __ mb     4.5   610734487             735210697 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  90.12 348.8 P        2016/04/15 11:18:27.088   0.6 111.6         9.1       T__   6.9      10.8  0.99  __ mb     5.1   610734488             735210809 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  80.77  11.4 P        2016/04/15 14:23:35.9    -1.1                         T__                        __              610734499             771459343 ISC   IR                MOS   S?Z        78.1777   16.3700   323.0    0.0
+IR        SPITS  62.96 347.8 P        2016/04/15 16:35:32.0    -0.7                         T__                        __              610734511             771460224 ISC   IR                MOS   S?Z        78.1777   16.3700   323.0    0.0
+IR        SPITS  63.14 347.9 P        2016/04/15 16:41:16.178   0.4  35.2         7.8       T__   1.5       3.1  0.65  __ mb     4.6   610734513             735211587 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  62.85 347.8 P        2016/04/15 16:43:45.5     0.0 103.9         7.0       T__   8.4       6.0  0.66  __ mb     4.9   610734514             735211612 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  62.98 347.8 P        2016/04/15 16:54:32.638  -0.5 118.4        12.1       T__   2.7       6.2  0.82  __ mb     4.8   610734518             735211720 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  57.95 348.6 P        2016/04/15 18:10:49.2    -0.6                         T__                        __              610734543             771461576 ISC   IR                MOS   S?Z        78.1777   16.3700   323.0    0.0
+IR        SPITS  62.71 347.8 P        2016/04/15 18:31:13.187   0.7  18.2        11.1       T__   4.6       9.4  1.05  __ mb     4.9   610734552             735212315 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  50.51 356.3 P        2016/04/15 18:34:09.266  -0.8   0.0        10.7       T__   1.4       2.8  0.79  __ mb     4.3   610734553             735212343 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS   2.66 109.9 Pn       2016/04/15 18:35:37.875   0.6 302.1        11.4       T__  62.4                  __              610734558             735212404 ISC   IR                      ???        78.1777   16.3700   323.0    0.0
+IR        SPITS   2.66 109.9 Sn       2016/04/15 18:36:07.35   -2.1 293.1        23.8       T__   5.3                  __              610734558             735212405 ISC   IR                      ???        78.1777   16.3700   323.0    0.0
+IR        SPITS  62.81 347.9 P        2016/04/15 19:06:18.862   0.1  95.7         8.5       T__  12.1      11.0  0.85  __ mb     5.1   610734563             735212586 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  62.89 347.8 P        2016/04/15 19:16:14.95    0.0  94.8        10.3       T__   5.2      11.5  1.05  __ mb     5.0   610734567             735212666 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  49.81 358.7 P        2016/04/15 19:36:14.65   -0.5  27.3         5.6       T__   7.6      12.1  1.03  __ mb     4.9   610734576             735212846 ISC   IR                      ??? ???    78.1777   16.3700   323.0    0.0
+IR        SPITS  62.59 347.9 P        2016/04/15 22:22:04.1     0.7                         T__                        __              610734605             771462797 ISC   IR                MOS   S?Z        78.1777   16.3700   323.0    0.0
+
+STOP
+
+Agencies whose data contributed towards the results of this search:
+
+ AAE       University of Addis Ababa
+ ASGSR     Altay-Sayan Branch, Geophysical Survey, Russian Academy of Sciences
+ ATH       National Observatory of Athens
+ AUST      Geoscience Australia
+ AWI       Alfred Wegener Institute for Polar and Marine Research
+ BELR      Centre of Geophysical Monitoring of the National Academy of Sciences of Belarus
+ BER       University of Bergen
+ BGR       Bundesanstalt für Geowissenschaften und Rohstoffe
+ BGS       British Geological Survey
+ BJI       China Earthquake Networks Center
+ BKK       Thai Meteorological Department
+ BRA       Geophysical Institute, Slovak Academy of Sciences
+ BRG       Seismological Observatory Berggießhübel, TU Bergakademie Freiberg
+ BUC       National Institute for Earth Physics
+ BUD       Geodetic and Geophysical Research Institute
+ CLL       Geophysikalisches Observatorium Collm
+ CNRM      Centre National de Recherche
+ CRAAG     Centre de Recherche en Astronomie, Astrophysique et Géophysique
+ DJA       Badan Meteorologi, Klimatologi dan Geofisika
+ DMN       National Seismological Centre, Nepal
+ DNK       Geological Survey of Denmark and Greenland
+ DSN       Dubai Seismic Network
+ EAF       East African Network
+ GCG       INSIVUMEH
+ GII       The Geophysical Institute of Israel
+ GRAL      National Council for Scientific Research
+ GUC       Centro Sismológico Nacional, Universidad de Chile
+ HEL       Institute of Seismology, University of Helsinki
+ HKC       Hong Kong Observatory
+ HYB       National Geophysical Research Institute
+ IDC       International Data Centre, CTBTO
+ IEPN      Institute of Environmental Problems of the North, Russian Academy of Sciences
+ IGIL      Instituto Dom Luiz, University of Lisbon
+ INET      Instituto Nicaraguense de Estudios Territoriales - INETER
+ INMG      Instituto Português do Mar e da Atmosfera, I.P.
+ IPEC      The Institute of Physics of the Earth (IPEC)
+ IRIS      IRIS Data Management Center
+ ISC       International Seismological Centre
+ ISC-EHB   Revision and Continuation of the EHB project
+ ISK       Kandilli Observatory and Earthquake Research Institute
+ ISU       Institute of Seismology, Academy of Sciences, Republic of Uzbekistan
+ JMA       Japan Meteorological Agency
+ JSO       Jordan Seismological Observatory
+ KEA       Korea Earthquake Administration
+ KLM       Malaysian Meteorological Service
+ KNET      Kyrgyz Seismic Network
+ KOGSR     Kola Branch, Geophysical Survey, Russian Academy of Sciences
+ KRNET     Institute of Seismology, Academy of Sciences of Kyrgyz Republic
+ LIC       Station Géophysique de Lamto
+ LIT       Geological Survey of Lithuania
+ LJU       Slovenian Environment Agency
+ LPA       Universidad Nacional de La Plata
+ MAN       Philippine Institute of Volcanology and Seismology
+ MCO       Macao Meteorological and Geophysical Bureau
+ MDD       Instituto Geográfico Nacional
+ MEX       Instituto de Geofísica de la UNAM
+ MOLD      Institute of Geophysics and Geology
+ MOS       Geophysical Survey of Russian Academy of Sciences
+ MSSP      Micro Seismic Studies Programme, PINSTECH
+ NAO       Stiftelsen NORSAR
+ NDI       National Centre for Seismology of the Ministry of Earth Sciences of India
+ NEIC      National Earthquake Information Center
+ NIC       Cyprus Geological Survey Department
+ NIED      National Research Institute for Earth Science and Disaster Resilience
+ NNC       National Nuclear Center
+ NOU       IRD Centre de Nouméa
+ OMAN      Sultan Qaboos University
+ OSPL      Observatorio Sismologico Politecnico Loyola
+ OTT       Canadian Hazards Information Service, Natural Resources Canada
+ PDG       Institute of Hydrometeorology and Seismology of Montenegro
+ PPT       Laboratoire de Géophysique/CEA
+ PRU       Institute of Geophysics, Czech Academy of Sciences
+ RHSSO     Republic Hydrometeorological Service, Seismological Observatory, Banja Luka
+ ROM       Istituto Nazionale di Geofisica e Vulcanologia
+ RSNC      Red Sismológica Nacional de Colombia
+ RSPR      Red Sísmica de Puerto Rico
+ SFS       Real Instituto y Observatorio de la Armada
+ SGS       Saudi Geological Survey
+ SJA       Instituto Nacional de Prevención Sísmica
+ SKO       Seismological Observatory Skopje
+ SNET      Servicio Nacional de Estudios Territoriales
+ SOF       National Institute of Geophysics, Geology and Geography
+ SOME      Seismological Experimental Methodological Expedition
+ STR       EOST / RéNaSS
+ SVSA      Sistema de Vigilância Sismológica dos Açores
+ SYO       National Institute of Polar Research
+ TAN       Antananarivo
+ TAP       Central Weather Bureau (CWB)
+ TEH       Tehran University
+ THE       Department of Geophysics, Aristotle University of Thessaloniki
+ TIR       Institute of Geosciences, Polytechnic University of Tirana
+ TRN       The Seismic Research Centre
+ UCC       Royal Observatory of Belgium
+ UCR       Sección de Sismología, Vulcanología y Exploración Geofísica
+ UPA       Universidad de Panama
+ UPP       University of Uppsala
+ VAO       Instituto Astronomico e Geofísico
+ VIE       Bundesanstalt für Geologie, Geophysik, Klimatologie und Meteorologie
+ WAR       Institute of Geophysics, Polish Academy of Sciences
+ WEL       Institute of Geological and Nuclear Sciences
+ ZUR       Swiss Seismological Service (SED)
+<br>Mon Feb 16 01:50:16 2026 GMT<br><br>International Seismological Centre<br>Pipers Lane, Thatcham, Berkshire<br>United Kingdom RG19 4NS<br>+44 (0)1635 861022, voice; +44 (0)1635 872351, fax<br>admin<img src="/images/staff/at.jpg" height="13"></img>isc.ac.uk, e-mail<br><br></pre>
+</body>
+</html>
