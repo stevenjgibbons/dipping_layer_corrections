@@ -65,5 +65,5 @@ which gives images like
 
 !["SPITS_sxsy_vectors"](SPITS_sxsy_vectors.png) 
 
-
+Finally, we try to solve for the strike and dip in the **snells_law** folder
 
