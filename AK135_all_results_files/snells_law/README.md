@@ -66,5 +66,5 @@ PREDICTED
   backazi_predicted   = 320.011°
 ```
 
-
+In the folder **theo_2_observed_tests** we try to compare the output with published results.  
 
