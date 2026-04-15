@@ -1,0 +1,8 @@
+#!/bin/sh
+# AKASG
+# ARCES ASAR BRTR BVAR CMAR EKA ESDC FINES GERES GEYT HFS ILAR KSRS KURBB KVAR MJAR MKAR MMAI NOA NVAR PDAR PDYAR PETK SONM SPITS TORD TXAR USRK WRA YKA ZALV 
+for station in \
+        LZDM HILR
+do
+  python make_station_all_arrivals.py ${station}
+done
