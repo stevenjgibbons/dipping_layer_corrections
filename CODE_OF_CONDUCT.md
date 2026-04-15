@@ -1,6 +1,6 @@
-# Contributor Covenant Code of Conduct - fkrelloc
+# Contributor Covenant Code of Conduct - dipping_layer_corrections
 
-As of present (January 11, 2026) there are no contributors to this repository other than myself (Steven J. Gibbons).
+As of present (April 15, 2026) there are no contributors to this repository other than myself (Steven J. Gibbons).
 Should this repository be opened up to other contributors then the following will apply.
 
 ## Our Pledge
