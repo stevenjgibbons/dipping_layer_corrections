@@ -35,3 +35,12 @@ https://github.com/stevenjgibbons/dipping_layer_corrections/tree/main/isf_event_
 **filter_all_isf_files.sh** is just an example script that filters multiple files.  
 
 Similarly, **delete_empty_files.sh** will delete all empty files and **bg_run.sh** is to be edited for the job in hand to perform the task in the background.  
+
+An example directory **SPITS** is provided with the three files
+```
+SPITS/SPITS_2016_04_15.isf
+SPITS/SPITS_2016_04_15_filt.txt
+SPITS/SPITS_2016_04_15_filt_event.txt
+```
+
+The folder **collect_all_results_files** exists to collect the process **filt_event.txt** files into a single file for each station.
