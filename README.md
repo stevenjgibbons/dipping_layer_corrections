@@ -4,4 +4,7 @@ A set of tools to calculate the parameters defining dipping layers beneath seism
 Scripts for the whole process, from collecting bulletins from the International Seismological Center, to calculating the predicted slowness vectors, to scanning the wave speed/strike/dip parameter space, to validating the outcomes against published results.  
 
 This is mostly a collection of bash scripts and python programs.  
-Copilot has been used extensively in writing the python routines.
+Copilot has been used extensively in writing the python routines.  
+
+The programs are not yet fully tested and I am sure that there will be bugs that need fixing!  
+
