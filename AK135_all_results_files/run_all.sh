@@ -1,0 +1,9 @@
+#!/bin/sh
+#  AKASG
+#for station in \
+#  AKASG ARCES ASAR BRTR BVAR CMAR EKA ESDC FINES GERES GEYT HFS ILAR KSRS KURBB KVAR MJAR MKAR MMAI NOA NVAR PDAR PETK SONM SPITS TORD TXAR USRK WRA YKA ZALV
+for station in \
+    LZDM HILR
+do
+  python add_AK135_slowness.py ${station}
+done
