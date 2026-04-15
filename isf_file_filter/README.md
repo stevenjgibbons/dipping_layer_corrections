@@ -25,6 +25,26 @@ GERES 150.19 344.1 PKPbc    2017-09-03T19:59:01.975  28.8  3.0  7.4  613580323  
 GERES  85.68 322.2 P        2017-09-03T22:57:14.025  30.3  6.0  5.0  613580332  995104929  48.8451   13.7016
 ```
 
+In this file we should see
+```
+stat   distd trbaz phase    arrival_time            msbaz mslo  SNR  evID       arrID      stlat     stlon
+GERES   4.71 319.8 Pn       2017-09-03T02:56:11.975 137.2 14.0  7.6  613580235  995101753  48.8451   13.7016
+```
+where
+```
+stat              = Station name
+distd             = distance in degrees from the ISC origin location
+trbaz             = "true backazimuth" from station to the ISC origin location
+phase             = phase name
+arrival_time      = arrival pick used in bulletin in format yyyy-mm-ddThh:mm:ss.sss
+msbaz             = measured backazimuth (from the data)
+mslo              = measured slowness in seconds per degree - so divide by 111.12 for s/km
+evID              = ISC event ID number
+arrID             = ISC arrival ID number
+stlat             = Station latitude
+stlon             = Station longitude
+```
+
 compile by typing
 ```
 make isf_file_filter
