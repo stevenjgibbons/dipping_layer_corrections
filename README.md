@@ -9,6 +9,10 @@ Scripts for the whole process, from collecting bulletins from the International 
 
 https://sqaaas.eosc-synergy.eu/full-assessment/report/https://raw.githubusercontent.com/eosc-synergy/dipping_layer_corrections.assess.sqaaas/main/.report/assessment_output.json  
 
+Version v1.0.0 of this repo is permanently archived on Zenodo under https://doi.org/10.5281/zenodo.19604184  
+
+[![DOI](https://zenodo.org/badge/1211477721.svg)](https://doi.org/10.5281/zenodo.19604184)
+
 This is mostly a collection of bash scripts and python programs.  
 Copilot has been used extensively in writing the python routines.  
 
