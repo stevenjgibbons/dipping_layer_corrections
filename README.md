@@ -8,3 +8,15 @@ Copilot has been used extensively in writing the python routines.
 
 The programs are not yet fully tested and I am sure that there will be bugs that need fixing!  
 
+The first stage is to collect observations. We do this from the bulletin of the ISC using the scripts contained in the folder
+**collect_arrivals_list**. This provides us with sets of observed sx, sy slowness values
+
+Then we go into the folder **AK135_all_results_files** to calculate the model-predicted (sx,sy) slownesses for each station and collect them into bins.  
+
+We scan strike and dip space for different wave-speed contrasts in the folder **AK135_all_results_files/snells_law**.  
+
+Finally, we can validate the estimates made and predict observed apparent velocity and backazimuth under different dipping layer scenarios in the folder
+**AK135_all_results_files/snells_law/theo_2_observed_tests**.  
+
+The folder **binned_sxsy_files** contains a "binned sx, sy" file for each IMS seismic array. Please note that these files were almost entirely automatically
+generated through the scripts provided in this repo, and using fairly limited sets of observations from each station. These may be updated later, or the user is of course free to curate and/or construct their own files by different methods.  
