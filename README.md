@@ -3,6 +3,12 @@
 A set of tools to calculate the parameters defining dipping layers beneath seismic arrays that make it necessary to apply slowness corrections.
 Scripts for the whole process, from collecting bulletins from the International Seismological Center, to calculating the predicted slowness vectors, to scanning the wave speed/strike/dip parameter space, to validating the outcomes against published results.  
 
+[![SQAaaS badge](https://github.com/EOSC-synergy/SQAaaS/raw/master/badges/badges_150x116/badge_software_bronze.png)](https://api.eu.badgr.io/public/assertions/DQUGjlnTQKuAOYP3QfxjFQ "SQAaaS bronze badge achieved")  
+
+[![SQAaaS badge shields.io](https://img.shields.io/badge/sqaaas%20software-bronze-e6ae77)](https://api.eu.badgr.io/public/assertions/DQUGjlnTQKuAOYP3QfxjFQ "SQAaaS bronze badge achieved")  
+
+https://sqaaas.eosc-synergy.eu/full-assessment/report/https://raw.githubusercontent.com/eosc-synergy/dipping_layer_corrections.assess.sqaaas/main/.report/assessment_output.json  
+
 This is mostly a collection of bash scripts and python programs.  
 Copilot has been used extensively in writing the python routines.  
 
