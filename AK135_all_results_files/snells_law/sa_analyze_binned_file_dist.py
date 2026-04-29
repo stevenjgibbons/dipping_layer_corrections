@@ -1,0 +1,633 @@
+#!/usr/bin/env python3
+import argparse
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+from typing import Tuple
+
+def normal_from_strike_dip(strike_deg: float, dip_deg: float) -> np.ndarray:
+    """
+    Compute the upward-pointing unit normal vector to a plane from
+    strike and dip in ENU coordinates (x=East, y=North, z=Up).
+
+    Assumptions:
+      - strike_deg: azimuth of strike (clockwise from North), in degrees [0, 360).
+      - dip_deg: dip angle measured downward from horizontal, in degrees [0, 90].
+      - Returns the unit normal with non-negative z (upward if possible).
+
+    Returns:
+      np.ndarray of shape (3,), unit length.
+    """
+    a = np.deg2rad(strike_deg)   # alpha
+    d = np.deg2rad(dip_deg)      # delta
+
+    # Downward-pointing unit normal in ENU
+    n = np.array([
+         np.sin(d) * np.cos(a),  # East
+        -np.sin(d) * np.sin(a),  # North
+        -np.cos(d)               # Down
+    ], dtype=float)
+
+    # Normalize to be extra safe against rounding error
+    n_norm = np.linalg.norm(n)
+    if n_norm == 0:
+        raise ValueError("Degenerate normal (check strike/dip).")
+    n /= n_norm
+
+    # Enforce upward pointing (nz >= 0)
+    if n[2] < 0:
+        n = -n
+
+    return n
+
+
+def incident_from_transmitted_snell_3d(
+    sx_below: float, sy_below: float, sz_below: float,
+    nx: float, ny: float, nz: float,
+    v_above: float, v_below: float,
+    *,
+    below_is_opposite_normal: bool = True,
+    tol: float = 1e-12
+) -> Tuple[float, float, float]:
+    """
+    Recover the incident (above-medium) slowness vector from a transmitted
+    (below-medium) slowness vector across a planar interface using 3D Snell's law.
+
+    Coordinates: ENU (x=East, y=North, z=Up).
+      - p_below = (sx_below, sy_below, sz_below) in s/km (assumed propagating).
+      - n = (nx, ny, nz) is the *unit* interface normal (dimensionless).
+      - v_above, v_below are wave speeds (km/s).
+
+    Physics:
+      - Tangential slowness is conserved: p_t (same above & below).
+      - Magnitude in each medium is 1/v.
+      - Normal component (magnitude) above is sqrt((1/v_above)^2 - ||p_t||^2).
+      - Sign of p_n,above is chosen to match sign(p_n,below) if non-grazing.
+        If grazing (|p_n,below| ~ 0), we pick a default consistent with the
+        convention that "below is opposite the normal" when
+        below_is_opposite_normal=True (then we choose negative).
+
+    Returns:
+      (sx_above, sy_above, sz_above) in s/km.
+
+    Raises:
+      ValueError if:
+        - v_above or v_below are non-positive,
+        - n is zero or near-zero,
+        - ||p_below|| is inconsistent with 1/v_below (beyond tolerance),
+        - The recovered incident is evanescent (i.e., ||p_t|| > 1/v_above).
+    """
+    # Validate wave speeds
+    if v_above <= 0 or v_below <= 0:
+        raise ValueError("Wave speeds must be positive.")
+
+    # Assemble vectors
+    p_below = np.array([sx_below, sy_below, sz_below], dtype=float)
+    n = np.array([nx, ny, nz], dtype=float)
+
+    # Normalize the normal
+    n_norm = np.linalg.norm(n)
+    if not np.isfinite(n_norm) or n_norm < tol:
+        raise ValueError("Interface normal must be non-zero.")
+    n = n / n_norm
+
+    # Optional: sanity-check that p_below has magnitude ~ 1/v_below
+    inv_vb = 1.0 / v_below
+    p_below_mag = np.linalg.norm(p_below)
+    if abs(p_below_mag - inv_vb) > 1e-6 * inv_vb:
+        # Not fatal in principle (could be noisy), but warn/raise if you prefer strictness.
+        pass
+
+    # Decompose transmitted slowness into tangential + normal
+    p_n_below = float(np.dot(p_below, n))   # scalar
+    p_t = p_below - p_n_below * n           # tangential component (conserved)
+    pt2 = float(np.dot(p_t, p_t))
+
+    # Physical feasibility in the above medium
+    inv_va = 1.0 / v_above
+    inv_va2 = inv_va * inv_va
+    if pt2 > inv_va2 + tol:
+        raise ValueError(
+            "Evanescent/invalid incident wave: "
+            f"||p_t||={np.sqrt(pt2):.6g} > 1/v_above={inv_va:.6g}."
+        )
+
+    # Compute incident normal magnitude
+    under = max(0.0, inv_va2 - pt2)
+    p_n_above_mag = np.sqrt(under)
+
+    # Choose sign for incident normal component
+    sign = np.sign(p_n_below)
+    if abs(sign) < 0.5:  # grazing transmitted: pick convention
+        sign = -1.0 if below_is_opposite_normal else +1.0
+
+    p_above = p_t + sign * p_n_above_mag * n
+
+    # Optional normalization polish (for rounding safety)
+    # p_above *= (inv_va / np.linalg.norm(p_above))
+
+    return tuple(map(float, p_above))
+
+def transmit_slowness_snell_3d(
+    sx_above: float, sy_above: float, sz_above: float,
+    nx: float, ny: float, nz: float,
+    v_above: float, v_below: float,
+    *,
+    below_is_opposite_normal: bool = True,
+    tol: float = 1e-12
+) -> Tuple[float, float, float]:
+    """
+    Compute the transmitted (refracted) slowness vector across a planar interface
+    using 3D Snell's law for isotropic media.
+
+    Coordinates: ENU (x=East, y=North, z=Up).
+      - s_above = (sx_above, sy_above, sz_above) are slowness components (s/km).
+      - n = (nx, ny, nz) is the interface *unit* normal (dimensionless).
+      - v_above, v_below are wave speeds (km/s) in the two half-spaces.
+
+    Physics:
+      - The tangential component of the slowness vector is conserved across the interface.
+      - The normal component adjusts so that ||p_below|| = 1 / v_below.
+      - The sign of the normal component below is chosen to match sign(p_above·n).
+        If p_above·n ≈ 0 (grazing), we choose the sign so that the transmitted
+        slowness points into the “below” half-space. With
+        `below_is_opposite_normal=True`, “below” is opposite the normal direction.
+
+    Returns:
+      (sx_below, sy_below, sz_below) in s/km.
+
+    Raises:
+      ValueError if:
+        - v_above or v_below are non-positive,
+        - n is (near-)zero,
+        - the transmitted wave is evanescent (total internal reflection),
+        - inputs are numerically inconsistent.
+
+    Notes:
+      - This function does NOT modify the input normal orientation; ensure 'n' is
+        the intended geometric normal for your interface.
+      - For a perfectly horizontal interface, n=(0,0,1) (Up).
+    """
+    # Validate speeds
+    if v_above <= 0 or v_below <= 0:
+        raise ValueError("Wave speeds must be positive.")
+
+    # Assemble vectors
+    p_above = np.array([sx_above, sy_above, sz_above], dtype=float)
+    n = np.array([nx, ny, nz], dtype=float)
+
+    # Normalize the normal
+    n_norm = np.linalg.norm(n)
+    if not np.isfinite(n_norm) or n_norm < tol:
+        raise ValueError("Interface normal must be non-zero.")
+    n = n / n_norm
+
+    # Optional: sanity-check incident magnitude vs. v_above (not required, but informative)
+    inv_va = 1.0 / v_above
+    p_mag = np.linalg.norm(p_above)
+    if abs(p_mag - inv_va) > 1e-6 * inv_va:
+        # Not fatal: incident may be numerically noisy. You can warn/log if desired.
+        pass
+
+    # Decompose incident slowness into tangential + normal components
+    p_n_above = float(np.dot(p_above, n))          # scalar normal component
+    p_t = p_above - p_n_above * n                  # tangential component (conserved)
+    pt2 = float(np.dot(p_t, p_t))
+
+    inv_vb = 1.0 / v_below
+    inv_vb2 = inv_vb * inv_vb
+
+    # Physical feasibility: ||p_t|| must not exceed 1/v_below
+    if pt2 > inv_vb2 + tol:
+        # No real transmitted wave: evanescent (total internal reflection)
+        raise ValueError(
+            "Evanescent transmitted wave (total internal reflection): "
+            f"||p_t||={np.sqrt(pt2):.6g} > 1/v_below={inv_vb:.6g}."
+        )
+
+    # Compute transmitted normal component magnitude
+    under = max(0.0, inv_vb2 - pt2)               # protect against tiny negatives
+    p_n_below_mag = np.sqrt(under)
+
+    # Choose sign for transmitted normal component
+    sign = np.sign(p_n_above)
+    if abs(sign) < 0.5:  # grazing incidence: p_n_above ~ 0
+        sign = -1.0 if below_is_opposite_normal else +1.0
+
+    p_below = p_t + sign * p_n_below_mag * n
+
+    # Final polish: ensure numerical normalization (optional)
+    # (Should already satisfy ||p_below|| = 1/v_below within rounding)
+    # p_below *= (inv_vb / np.linalg.norm(p_below))
+
+    return tuple(map(float, p_below))
+
+# Example: horizontal interface (n up), wave going downward from above.
+sx_a, sy_a = 0.05, 0.00             # horizontal slowness (s/km)
+v_above, v_below = 6.0, 8.0         # km/s
+inv_va = 1.0 / v_above
+sz_a = -np.sqrt(max(0.0, inv_va**2 - sx_a**2 - sy_a**2))  # downward (negative z)
+
+strike = 30.0
+dip    = 10.0
+nxval, nyval, nzval = normal_from_strike_dip( strike, dip )
+
+print ('Normal = (',nxval,',',nyval,',',nzval,')' )
+
+sx_b, sy_b, sz_b = transmit_slowness_snell_3d(
+    sx_a, sy_a, sz_a,
+    nx=nxval, ny=nyval, nz=nzval,         # Upward normal
+    v_above=v_above, v_below=v_below
+)
+
+print("p_above:", (sx_a, sy_a, sz_a))
+print("p_below:", (sx_b, sy_b, sz_b))
+print("||p_above|| ~", 1.0 / v_above, "||p_below|| ~", 1.0 / v_below)
+
+print ("Now in the other direction")
+
+sx_a_back, sy_a_back, sz_a_back = incident_from_transmitted_snell_3d(
+    sx_b, sy_b, sz_b,
+    nx=nxval, ny=nyval, nz=nzval,   
+    v_above=v_above, v_below=v_below
+)
+
+print("p_above_returned:", (sx_a_back, sy_a_back, sz_a_back))
+
+# ------------------------------------------------------------
+# Predict slowness for a single theoretical (sx, sy)
+# ------------------------------------------------------------
+def predict_slowness_from_theoretical(
+    sx_theor, sy_theor, v_ak135,
+    alpha1, alpha2,
+    strike_deg, dip_deg
+):
+    inv_v_ak = 1.0 / v_ak135
+    horiz2 = sx_theor**2 + sy_theor**2
+    if horiz2 >= inv_v_ak**2:
+        return np.nan, np.nan
+
+    # downwards
+    sz_theor = -np.sqrt(inv_v_ak**2 - horiz2)
+
+    # 1) Down through flat boundary
+    v_below = alpha1 * v_ak135
+    sx_d, sy_d, sz_d = transmit_slowness_snell_3d(
+        sx_theor, sy_theor, sz_theor,
+        nx=0, ny=0, nz=1,
+        v_above=v_ak135,
+        v_below=v_below
+    )
+
+    # 2) Up through dipping boundary
+    nx_dip, ny_dip, nz_dip = normal_from_strike_dip(strike_deg, dip_deg)
+    v_above_new = v_below / alpha2
+
+    sx_p, sy_p, sz_p = incident_from_transmitted_snell_3d(
+        sx_d, sy_d, sz_d,
+        nx=nx_dip, ny=ny_dip, nz=nz_dip,
+        v_above=v_above_new,
+        v_below=v_below
+    )
+
+    return sx_p, sy_p
+
+
+# ------------------------------------------------------------
+# Read binned file
+# ------------------------------------------------------------
+def read_binned_file(filename):
+    rows = []
+    with open(filename) as f:
+        for line in f:
+            if not line.strip():
+                continue
+            vals = line.split()
+            if len(vals) < 5:
+                continue
+            sx_t, sy_t, sx_o, sy_o, w = map(float, vals[:5])
+            rows.append((sx_t, sy_t, sx_o, sy_o, w))
+    return np.array(rows)
+
+
+# ------------------------------------------------------------
+# P/S classification
+# ------------------------------------------------------------
+def choose_velocity(sx, sy):
+    s = np.sqrt(sx*sx + sy*sy)
+    if s == 0:
+        return 5.80
+    v = 1.0 / s
+    return 5.80 if v > 4.5 else 3.46
+
+## ------------------------------------------------------------
+## Similarity metric (weighted cosine similarity, normalized)
+## ------------------------------------------------------------
+
+def compute_similarity(
+    data, alpha1, alpha2, strike, dip, eps=1e-12
+):
+    """
+    Element-wise similarity in [0, 1]
+    = 1 iff predicted == observed
+    """
+    num = 0.0
+    den = 0.0
+
+    for sx_t, sy_t, sx_obs, sy_obs, w in data:
+
+        try:
+            sx_p, sy_p = predict_slowness_from_theoretical(
+                sx_t, sy_t,
+                v_ak135=choose_velocity(sx_t, sy_t),
+                alpha1=alpha1,
+                alpha2=alpha2,
+                strike_deg=strike,
+                dip_deg=dip,
+            )
+        except ValueError:
+            # Evanescent / TIR — skip
+            continue
+
+        if not all(np.isfinite(v) for v in (sx_p, sy_p, sx_obs, sy_obs)):
+            continue
+
+        # Element-wise squared residual
+        r2 = (sx_p - sx_obs)**2 + (sy_p - sy_obs)**2
+
+        # Natural scale: observed vector length
+        s2 = sx_obs**2 + sy_obs**2
+
+        if s2 < eps:
+            continue
+
+        sim_i = 1.0 / (1.0 + r2 / s2)
+
+        num += w * sim_i
+        den += w
+
+    if den == 0.0:
+        return np.nan
+
+    return num / den
+
+def compute_similarity_previous(data, alpha1, alpha2, strike, dip):
+    """
+    Element-wise L2 misfit between predicted and observed (sx, sy).
+    Lower is better.
+    """
+    total_misfit = 0.0
+
+    for sx_t, sy_t, sx_obs, sy_obs, w in data:
+
+        try:
+            sx_p, sy_p = predict_slowness_from_theoretical(
+                sx_t, sy_t,
+                v_ak135=choose_velocity(sx_t, sy_t),
+                alpha1=alpha1,
+                alpha2=alpha2,
+                strike_deg=strike,
+                dip_deg=dip,
+            )
+        except ValueError:
+            # Evanescent / TIR / geometry failure — skip this bin
+            continue
+
+        # Explicit NaN / inf protection
+        if not np.isfinite(sx_p) or not np.isfinite(sy_p):
+            continue
+        if not np.isfinite(sx_obs) or not np.isfinite(sy_obs):
+            continue
+
+        rx = sx_p - sx_obs
+        ry = sy_p - sy_obs
+
+        total_misfit += w * (rx * rx + ry * ry)
+
+    return total_misfit
+
+def compute_similarity_1(data, alpha1, alpha2, strike, dip):
+    """
+    Computes a weighted, normalized cosine similarity between
+    predicted and observed slowness vectors.
+
+    Returns:
+        similarity in [0, 1], where 1 == perfect match
+    """
+
+    pred = []
+    obs = []
+    weights = []
+
+    for sx_t, sy_t, sx_o, sy_o, w in data:
+
+        # ---- predicted (theoretical) ----
+        # IMPORTANT: this is exactly where your original
+        # prediction logic already lives or is called
+        try:
+            sx_p, sy_p = predict_slowness_from_theoretical(
+                sx_t, sy_t,
+                v_ak135=choose_velocity(sx_t, sy_t),
+                alpha1=alpha1,
+                alpha2=alpha2,
+                strike_deg=strike,
+                dip_deg=dip,
+            )
+        except ValueError:
+            # Evanescent / total internal reflection — skip this bin
+            continue
+        #sx_p, sy_p = predict_slowness_from_theoretical(
+        #    sx_t, sy_t,
+        #    v_ak135=choose_velocity(sx_t, sy_t),
+        #    alpha1=alpha1,
+        #    alpha2=alpha2,
+        #    strike_deg=strike,
+        #    dip_deg=dip,
+        #)
+
+        if not np.isfinite(sx_p) or not np.isfinite(sy_p):
+            continue
+
+        # ---- observed ----
+        pred.extend([sx_p, sy_p])
+        obs.extend([sx_o, sy_o])
+        weights.extend([w, w])
+
+    if len(pred) == 0:
+        return 0.0
+
+    pred = np.asarray(pred)
+    obs = np.asarray(obs)
+    weights = np.asarray(weights)
+
+    # ---- weighted cosine similarity ----
+    num = np.sum(weights * pred * obs)
+    den_p = np.sqrt(np.sum(weights * pred * pred))
+    den_o = np.sqrt(np.sum(weights * obs * obs))
+
+    denom = den_p * den_o
+    if denom == 0.0:
+        return 0.0
+
+    cos_sim = num / denom
+    cos_sim = np.clip(cos_sim, -1.0, 1.0)
+
+    # normalize to [0, 1]
+    return 0.5 * (1.0 + cos_sim)
+
+# ------------------------------------------------------------
+# Similarity metric (failsafe enabled)
+# ------------------------------------------------------------
+def compute_similarity_old(data, alpha1, alpha2, strike, dip):
+    total = 0.0
+    count = 0
+
+    for sx_t, sy_t, sx_o, sy_o, w in data:
+        v_ak = choose_velocity(sx_t, sy_t)
+
+        try:
+            sx_p, sy_p = predict_slowness_from_theoretical(
+                sx_t, sy_t, v_ak,
+                alpha1, alpha2,
+                strike, dip
+            )
+        except Exception:
+            # Snell-law failure (evanescent wave, invalid geometry, etc.)
+            continue
+
+        if np.isnan(sx_p) or np.isnan(sy_p):
+            continue
+
+        diff = np.sqrt((sx_o - sx_p)**2 + (sy_o - sy_p)**2)
+        total += w * diff
+        count += w
+
+    total = total/count
+
+    return total
+
+
+# ------------------------------------------------------------
+# Solid rose plot with best-fit outline
+# ------------------------------------------------------------
+def make_rose_plot(strikes, dips, values, station, out_png, out_pdf):
+    strikes_unique = np.unique(strikes)
+    dips_unique = np.unique(dips)
+
+    nstrike = len(strikes_unique)
+    ndip = len(dips_unique)
+
+    strikes_rad = np.radians(strikes_unique)
+
+    # Strike edges
+    if nstrike > 1:
+        dtheta = strikes_rad[1] - strikes_rad[0]
+    else:
+        dtheta = np.radians(10)
+    strike_edges = np.concatenate((
+        [strikes_rad[0] - dtheta/2],
+        strikes_rad + dtheta/2
+    ))
+
+    # Dip edges
+    if ndip > 1:
+        dr = dips_unique[1] - dips_unique[0]
+    else:
+        dr = 1.0
+    dip_edges = np.concatenate((
+        [dips_unique[0] - dr/2],
+        dips_unique + dr/2
+    ))
+
+    # Build Z array
+    Z = np.zeros((ndip, nstrike))
+    for strike, dip, val in zip(strikes, dips, values):
+        i = np.where(dips_unique == dip)[0][0]
+        j = np.where(strikes_unique == strike)[0][0]
+        Z[i, j] = val
+
+    # Best-fit (minimum)
+    best_idx = np.unravel_index(np.argmin(Z), Z.shape)
+    best_i, best_j = best_idx
+
+    theta1 = strike_edges[best_j]
+    theta2 = strike_edges[best_j + 1]
+    r1 = dip_edges[best_i]
+    r2 = dip_edges[best_i + 1]
+
+    fig, ax = plt.subplots(subplot_kw=dict(polar=True), figsize=(9, 9))
+    ax.set_theta_zero_location("N")
+    ax.set_theta_direction(-1)
+
+    pcm = ax.pcolormesh(
+        strike_edges,
+        dip_edges,
+        Z,
+        shading="auto",
+        cmap="viridis"
+    )
+
+    # Draw white rectangle around best cell
+    ax.plot([theta1, theta2], [r1, r1], color="white", linewidth=2)
+    ax.plot([theta1, theta2], [r2, r2], color="white", linewidth=2)
+    ax.plot([theta1, theta1], [r1, r2], color="white", linewidth=2)
+    ax.plot([theta2, theta2], [r1, r2], color="white", linewidth=2)
+
+    cb = plt.colorbar(pcm, ax=ax, pad=0.1)
+    cb.set_label("Similarity metric", fontsize=12)
+
+    ax.set_title(f"Strike–Dip Fit for {station}", fontsize=16)
+
+    plt.savefig(out_png, dpi=250)
+    plt.savefig(out_pdf)
+    plt.close()
+
+
+# ------------------------------------------------------------
+# Main program
+# ------------------------------------------------------------
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", required=True)
+    parser.add_argument("--alpha1", type=float, required=True)
+    parser.add_argument("--alpha2", type=float, required=True)
+    parser.add_argument("--numstrike", type=int, required=True)
+    parser.add_argument("--maxdip", type=float, required=True)
+    parser.add_argument("--numdip", type=int, required=True)
+    args = parser.parse_args()
+
+    station = os.path.basename(args.file).split("_")[0]
+    data = read_binned_file(args.file)
+
+    strikes = np.linspace(0, 360 - 360/args.numstrike, args.numstrike)
+    dips = np.linspace(0, args.maxdip, args.numdip)
+
+    results = []
+    for strike in strikes:
+        for dip in dips:
+            sim = compute_similarity_old(data, args.alpha1, args.alpha2, strike, dip)
+            results.append((strike, dip, sim))
+
+    # Write text file
+    txt = f"{station}_strike_dip_fit.txt"
+    with open(txt, "w") as f:
+        for strike, dip, sim in results:
+            f.write(f"{strike:8.2f} {dip:8.2f} {sim:15.6e}\n")
+
+    # Arrays for plotting
+    strikes_arr = np.array([r[0] for r in results])
+    dips_arr = np.array([r[1] for r in results])
+    sims_arr = np.array([r[2] for r in results])
+
+    png = f"{station}_strike_dip_fit.png"
+    pdf = f"{station}_strike_dip_fit.pdf"
+
+    make_rose_plot(strikes_arr, dips_arr, sims_arr, station, png, pdf)
+
+    print(f"Wrote {txt}")
+    print(f"Wrote {png}")
+    print(f"Wrote {pdf}")
+
+
+if __name__ == "__main__":
+    main()
