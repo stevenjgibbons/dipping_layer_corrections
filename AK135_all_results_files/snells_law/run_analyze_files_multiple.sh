@@ -1,4 +1,8 @@
 #!/bin/sh
+if test ! -d outputs
+then
+  mkdir outputs
+fi
 for binnedfile in ../*_binned_sxsy.txt
 do
   if test -r ${binnedfile}
